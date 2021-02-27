@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <unistd.h>
 #include "mutex.h"
 #ifdef _WIN32
 CRITICAL_SECTION screenmutex;
@@ -47,18 +48,18 @@ extern void reset86();
 extern void exec86 (uint32_t execloops);
 extern uint8_t initscreen (uint8_t *ver);
 extern void VideoThread();
-extern doscrmodechange();
+extern int doscrmodechange();
 extern void handleinput();
 
 #ifdef CPU_ADDR_MODE_CACHE
 extern uint64_t cached_access_count, uncached_access_count;
 #endif
 
-extern uint8_t scrmodechange, doaudio;
+extern uint8_t verbose, scrmodechange, doaudio;
 extern uint64_t totalexec, totalframes;
 uint64_t starttick, endtick, lasttick;
 
-uint8_t *biosfile = NULL, verbose = 0, cgaonly = 0, useconsole = 0;
+uint8_t *biosfile = NULL, cgaonly = 0, useconsole = 0;
 uint32_t speed = 0;
 
 
@@ -102,6 +103,7 @@ uint32_t loadbios (uint8_t *filename) {
 
 	binfile = fopen (filename, "rb");
 	if (binfile == NULL) {
+            fprintf(stderr, "Unable to load %s\n", filename);
 			return (0);
 		}
 

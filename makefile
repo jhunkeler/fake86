@@ -1,20 +1,29 @@
-SRCFILES=src/fake86/*.c
+SRC := src/fake86
+SRCFILES=$(wildcard $(SRC)/*.c)
+OBJFILES=$(patsubst $(SRC)/%.c, %.o, $(SRCFILES))
+
 BINPATH=/usr/bin
 DATAPATH=/usr/share/fake86
-CFLAGS=-O2 -DPATH_DATAFILES=\"$(DATAPATH)/\"
-INCLUDE=-Isrc/fake86
-LIBS=-lpthread
+CFLAGS=-Wall -O2 -DPATH_DATAFILES=\"$(DATAPATH)/\" -std=gnu99
+INCLUDE=-I$(SRC)
+LIBS=-lpthread -lX11
 SDLFLAGS=`sdl-config --cflags --libs`
 
-all: fake86-src imagegen-src
+%.o: $(SRC)/%.c
+	$(CC) -c $< $(CFLAGS) $(INCLUDE) $(LIBS) $(SDLFLAGS)
 
-fake86-src:
-	$(CC) $(SRCFILES) -o bin/fake86 $(CFLAGS) $(INCLUDE) $(LIBS) $(SDLFLAGS)
-	chmod a+x bin/fake86
+all: $(OBJFILES_F86) fake86 imagegen
 
-imagegen-src:
-	$(CC) src/imagegen/imagegen.c -o bin/imagegen $(CFLAGS)
-	chmod a+x bin/imagegen
+fake86: $(OBJFILES)
+	$(CC) $^ -o $@ $(CFLAGS) $(INCLUDE) $(LIBS) $(SDLFLAGS)
+	mv $@ bin
+
+imagegen.o: src/imagegen/imagegen.c
+	$(CC) -c $< $(CFLAGS)
+
+imagegen: imagegen.o
+	$(CC) $^ -o $@
+	mv $@ bin
 
 install:
 	mkdir -p $(BINPATH)
@@ -27,7 +36,9 @@ install:
 	cp -p data/videorom.bin $(DATAPATH)
 	cp -p data/rombasic.bin $(DATAPATH)
 
+.PHONY:
 clean:
+	rm -f *.o
 	rm -f src/fake86/*.o
 	rm -f src/fake86/*~
 	rm -f src/imagegen/*.o

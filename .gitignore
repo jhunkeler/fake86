@@ -1,0 +1,5 @@
+*.o
+*.swp
+*~
+fake86
+imagegen
